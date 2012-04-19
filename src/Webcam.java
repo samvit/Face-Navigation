@@ -12,8 +12,8 @@ public class Webcam {
     private static void captureFrame() {
         // 0-default camera, 1 - next...so on
         final OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(0);
-        CvScalar min = cvScalar(0, 0, 130, 0);
-        CvScalar max= cvScalar(140, 110, 255, 0);
+        CvScalar min = cvScalar(80, 100, 100, 0);
+        CvScalar max= cvScalar(100, 255, 255, 0);
 
         try {
             grabber.start();
@@ -31,7 +31,7 @@ public class Webcam {
                 //smooth filter- median
                 cvSmooth(imgThreshold, imgThreshold, CV_MEDIAN, 13);
                 // show image on window
-                canvas.showImage(imgThreshold);
+                canvas.showImage(img);
                 img = grabber.grab();
 //              cvSaveImage("capture.jpg", img);
             }
