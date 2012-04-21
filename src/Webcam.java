@@ -306,20 +306,21 @@ public class Webcam {
 //    			System.out.println("screen Width: " + screenSize.width);
 //    			System.out.println( (int) (((r.x() + r.width()/2 + 0.0) / canvasSize.width) * screenSize.width) );
 //    			System.out.println( (int) (((r.y() + r.height()/2 + 0.0) / canvasSize.height) * screenSize.height) );
-    			if (r.x() + r.width()/2 < 0.2 * canvasSize.width) {
+    			double bound = 0.4;
+    			if (r.x() + r.width()/2 < bound * canvasSize.width) {
     				xPos = 0;
-    			} else if (r.x() + r.width()/2 > 0.8 * canvasSize.width) {
+    			} else if (r.x() + r.width()/2 > (1-bound) * canvasSize.width) {
     				xPos = screenSize.width;
     			} else {
-    				xPos = (int) ((r.x() + r.width()/2 + 0.0 - 0.2 * canvasSize.width) / (0.6 * canvasSize.width) * screenSize.width);
+    				xPos = (int) ((r.x() + r.width()/2 + 0.0 - bound * canvasSize.width) / ((1-2*bound) * canvasSize.width) * screenSize.width);
     			}
     			
-    			if (r.y() + r.height()/2 < 0.2 * canvasSize.height) {
+    			if (r.y() + r.height()/2 < bound * canvasSize.height) {
     				yPos = 0;
-    			} else if (r.y() + r.height()/2 > 0.8 * canvasSize.height) {
+    			} else if (r.y() + r.height()/2 > (1-bound) * canvasSize.height) {
     				yPos = screenSize.height;
     			} else {
-    				yPos = (int) ((r.y() + r.height()/2 + 0.0 - 0.2 * canvasSize.height) / (0.6 * canvasSize.height) * screenSize.height);
+    				yPos = (int) ((r.y() + r.height()/2 + 0.0 - bound * canvasSize.height) / ((1-2*bound) * canvasSize.height) * screenSize.height);
     			}
     			
     			robot.mouseMove(xPos, yPos);
