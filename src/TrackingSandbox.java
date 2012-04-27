@@ -57,7 +57,7 @@ import com.googlecode.javacv.cpp.opencv_core.IplImage;
 import com.googlecode.javacv.cpp.opencv_imgproc.IplConvKernel;
 import com.googlecode.javacv.cpp.opencv_objdetect.CvHaarClassifierCascade;
 
-public class Webcam {
+public class TrackingSandbox {
   static OpenCVFrameGrabber capture;
   static IplImage frame, gray, prev, diff, tpl;
   static CvMemStorage storage;
@@ -167,7 +167,7 @@ public class Webcam {
         //                if (frameNumber % 10 == 0) {
 
        prevMouse = currentMouse;
-        detectNose(img , prevMouse, .8);
+       detectNose(img , prevMouse, .2);
        currentMouse = MouseInfo.getPointerInfo().getLocation();
         //                }
         //                detectEyes(img);
@@ -291,7 +291,7 @@ public class Webcam {
     storage = null; // new CvMemStorage();
 
     if (cascade == null) {
-      String file = "/usr/local/Cellar/opencv/2.3.1a/share/OpenCV/haarcascades/haarcascade_mcs_nose.xml";
+      String file = "/usr/local/Cellar/opencv/2.3.1a/share/OpenCV/haarcascades/haarcascade_mcs_eyepair_big.xml";
       cascade = new CvHaarClassifierCascade(cvLoad(file));
       storage = cvCreateMemStorage(0);
     }
@@ -305,7 +305,7 @@ public class Webcam {
 
     int xPos = 0, yPos = 0;
 
-    CvSeq faces = cvHaarDetectObjects(gray, cascade, storage, 1.5, 10, CV_HAAR_DO_CANNY_PRUNING+5, cvSize(10,10), cvSize(10,10));
+    CvSeq faces = cvHaarDetectObjects(gray, cascade, storage, 1.5, 5, CV_HAAR_DO_CANNY_PRUNING+5, cvSize(20,20), cvSize(20,20));
     for (int i = 0; i < ((faces != null) ? faces.total() : 0); i++) {
       CvRect r = new CvRect(cvGetSeqElem(faces, i));
       cvRectangle(img, cvPoint(r.x(), r.y()), cvPoint(r.x() + r.width(), r.y() + r.height()), CV_RGB(255, 0, 0), 1, 8, 0);
