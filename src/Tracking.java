@@ -20,9 +20,7 @@ import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Robot;
 import java.awt.Toolkit;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 
 import com.googlecode.javacv.CanvasFrame;
 import com.googlecode.javacv.OpenCVFrameGrabber;
@@ -34,7 +32,7 @@ import com.googlecode.javacv.cpp.opencv_core.IplImage;
 import com.googlecode.javacv.cpp.opencv_imgproc.IplConvKernel;
 import com.googlecode.javacv.cpp.opencv_objdetect.CvHaarClassifierCascade;
 
-public class Tracking implements KeyListener {
+public class Tracking {
 	static OpenCVFrameGrabber capture;
 	static IplImage frame, gray, prev, diff, tpl;
 	static CvMemStorage storage;
@@ -54,6 +52,7 @@ public class Tracking implements KeyListener {
 	static Dimension screenSize, canvasSize;
 	
 	static long lastKeyPress = System.currentTimeMillis();
+	static int numFrames = 0;
 
 	private static void startTracking() throws AWTException {        
 		// 0 = default camera, 1 = next, etc.
@@ -69,13 +68,15 @@ public class Tracking implements KeyListener {
 
 			Point currentMouse = MouseInfo.getPointerInfo().getLocation();
 			
+			int numEyesDetected = 0;
+			
 			while (img != null) {
 				canvas.setDefaultCloseOperation(javax.swing.JFrame.EXIT_ON_CLOSE);
 				canvasSize = canvas.getCanvasSize();
 				
 				cvFlip(img, img, 1);
-				detectEyes(img, currentMouse);
-				detectProfile(img);
+				numEyesDetected = detectEyes(img, currentMouse);
+				detectProfile(img, numEyesDetected);
 				currentMouse = MouseInfo.getPointerInfo().getLocation();
 				canvas.showImage(img);
 				img = grabber.grab();
@@ -85,7 +86,7 @@ public class Tracking implements KeyListener {
 		}
 	}
 	
-	public static void detectProfile(IplImage img) {
+	public static void detectProfile(IplImage img, int numEyesDetected) {
 		CvHaarClassifierCascade cascade = null;
 		storage = null; // new CvMemStorage();
 		
@@ -108,45 +109,19 @@ public class Tracking implements KeyListener {
 			CvRect r = new CvRect(cvGetSeqElem(faces, i));
 			cvRectangle(img, cvPoint(r.x(), r.y()), cvPoint(r.x() + r.width(), r.y() + r.height()), CV_RGB(255, 0, 0), 1, 8, 0);
 			
-			if (i == 0 && System.currentTimeMillis() - lastKeyPress > 1000) {
-				lastKeyPress = System.currentTimeMillis();
-				robot.keyPress(KeyEvent.VK_BACK_QUOTE);
-				robot.keyRelease(KeyEvent.VK_BACK_QUOTE);
+			if (i == 0 && System.currentTimeMillis() - lastKeyPress > 1000 && numEyesDetected == 0) {
+				numFrames++;
+				if (numFrames == 5) {
+					numFrames = 0;
+					lastKeyPress = System.currentTimeMillis();
+					robot.keyPress(KeyEvent.VK_BACK_QUOTE);
+					robot.keyRelease(KeyEvent.VK_BACK_QUOTE);
+				}
 			}
 		}
 	}
 
-	public static void detectEyes(IplImage img) {
-		CvHaarClassifierCascade cascade = null;
-		storage = null; // new CvMemStorage();
-		
-		if (cascade == null) {
-			String file = "/usr/local/Cellar/opencv/2.3.1a/share/OpenCV/haarcascades/haarcascade_profileface.xml";
-			cascade = new CvHaarClassifierCascade(cvLoad(file));
-			storage = cvCreateMemStorage(0);
-		}
-		
-		if (img.nChannels() == 1) {
-			gray = (IplImage) cvClone(img);
-		} else {
-			gray = cvCreateImage(cvGetSize(img), img.depth(), 1);
-			cvCvtColor(img, gray, CV_RGB2GRAY);
-		}
-
-		CvSeq faces = cvHaarDetectObjects(gray, cascade, storage, 2.5, 4, CV_HAAR_DO_CANNY_PRUNING, cvSize(15, 15), cvSize(25, 25));
-
-		for (int i = 0; i < ((faces != null) ? faces.total() : 0); i++) {
-			CvRect r = new CvRect(cvGetSeqElem(faces, i));
-			cvRectangle(img, cvPoint(r.x(), r.y()), cvPoint(r.x() + r.width(), r.y() + r.height()), CV_RGB(255, 0, 0), 1, 8, 0);
-			
-			if (i == 0) {
-				robot.mousePress(InputEvent.BUTTON1_MASK);
-				robot.mouseRelease(InputEvent.BUTTON1_MASK);
-			}
-		}
-	}
-
-	public static void detectEyes(IplImage img, Point prevMouse) {
+	public static int detectEyes(IplImage img, Point prevMouse) {
 		CvHaarClassifierCascade cascade = null;
 		storage = null; // new CvMemStorage();
 
@@ -197,27 +172,11 @@ public class Tracking implements KeyListener {
 				robot.mouseMove(xPos, yPos);
 			}
 		}
+		
+		return faces.total();
 	}
 
 	public static void main(String[] args) throws AWTException {
 		startTracking();
-	}
-
-	@Override
-	public void keyTyped(KeyEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void keyPressed(KeyEvent e) {
-		System.out.println(e.getKeyCode());
-		
-	}
-
-	@Override
-	public void keyReleased(KeyEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
 }
